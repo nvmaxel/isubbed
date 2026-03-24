@@ -33,8 +33,8 @@ export default function Room({ children }: RoomProps) {
     const gamma = e.gamma ?? 0; // left-right tilt (-90 to 90)
 
     // Normalize: phone held upright (~beta 90), map tilt relative to that
-    const x = Math.max(-10, Math.min(10, gamma * 0.3));
-    const y = Math.max(-10, Math.min(10, (beta - 60) * 0.3));
+    const x = Math.max(-20, Math.min(20, gamma * 0.9));
+    const y = Math.max(-20, Math.min(20, (beta - 45) * 0.9));
 
     setTilt({ x, y });
   }, []);
@@ -112,12 +112,7 @@ export default function Room({ children }: RoomProps) {
         <img
           src="/assets/room.avif"
           alt=""
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: "block",
-          }}
+          className="room-bg-img"
         />
       </div>
 
