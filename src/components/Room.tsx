@@ -9,6 +9,7 @@ interface RoomProps {
 export default function Room({ children }: RoomProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
   const gyroActive = useRef(false);
 
   // Desktop: mouse-based parallax
@@ -61,6 +62,7 @@ export default function Room({ children }: RoomProps) {
             const permission = await DOE.requestPermission!();
             if (permission === "granted") {
               gyroActive.current = true;
+              setIsMobile(true);
               window.addEventListener("deviceorientation", handleOrientation);
             }
           } catch {
@@ -74,6 +76,7 @@ export default function Room({ children }: RoomProps) {
         const testHandler = (e: DeviceOrientationEvent) => {
           if (e.beta !== null || e.gamma !== null) {
             gyroActive.current = true;
+            setIsMobile(true);
           }
           window.removeEventListener("deviceorientation", testHandler);
         };
@@ -101,7 +104,7 @@ export default function Room({ children }: RoomProps) {
       <div
         style={{
           position: "absolute",
-          inset: "-10%",
+          inset: isMobile ? "-25%" : "-10%",
           pointerEvents: "none",
           overflow: "hidden",
           transformStyle: "preserve-3d",
