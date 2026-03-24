@@ -43,7 +43,7 @@ export default function Room({ children }: RoomProps) {
 
       {/* Content — foreground layer */}
       <div
-        className="absolute inset-0 flex items-center justify-center p-6"
+        className="absolute inset-0 flex items-center justify-center p-6 z-10"
         data-atropos-offset="5"
       >
         {children}

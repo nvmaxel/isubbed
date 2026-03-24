@@ -27,6 +27,12 @@ body {
   border-radius: 0 !important;
 }
 
+.atropos-highlight,
+.atropos-shadow {
+  pointer-events: none !important;
+  display: none !important;
+}
+
 /* Shake animation for when the "no" button gets chained */
 @keyframes shake {
   0%,
