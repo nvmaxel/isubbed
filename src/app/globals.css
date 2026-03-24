@@ -1,26 +1,107 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #1a0a0a;
+  color: #ffffff;
+}
+
+/* Full-screen Atropos overrides */
+.atropos,
+.atropos-scale,
+.atropos-rotate,
+.atropos-inner {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.atropos-inner {
+  overflow: visible !important;
+  border-radius: 0 !important;
+}
+
+/* Shake animation for when the "no" button gets chained */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  10% {
+    transform: translate(-10px, -2px) rotate(-3deg);
+  }
+  20% {
+    transform: translate(8px, 3px) rotate(2deg);
+  }
+  30% {
+    transform: translate(-7px, -1px) rotate(-2deg);
+  }
+  40% {
+    transform: translate(6px, 2px) rotate(1deg);
+  }
+  50% {
+    transform: translate(-4px, -1px) rotate(-1deg);
+  }
+  60% {
+    transform: translate(3px, 1px) rotate(0.5deg);
+  }
+  70% {
+    transform: translate(-2px, 0);
+  }
+  80% {
+    transform: translate(1px, 0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.animate-shake {
+  animation: shake 0.8s ease-out;
+}
+
+/* Cartoon speech bubble — curved tail via CSS mask */
+.speech-bubble {
+  --b: 1.4em;
+  --h: 1em;
+  --t: 0.35;
+  --p: 25%;
+  --r: 1.6em;
+
+  padding: 0.6em 1.2em;
+  border-radius: var(--r) var(--r)
+    min(var(--r), 100% - var(--p) - (1 - var(--t)) * var(--b) / 2)
+    min(var(--r), var(--p) - (1 - var(--t)) * var(--b) / 2) / var(--r);
+  background: #fff;
+  position: relative;
+  border: 2px solid #222;
+  display: inline-block;
+}
+
+.speech-bubble::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: clamp(
+    -1 * var(--t) * var(--b),
+    var(--p) - (var(--t) + 1) * var(--b) / 2,
+    100% - var(--b)
+  );
+  width: var(--b);
+  height: var(--h);
+  background: inherit;
+  border-bottom-right-radius: 100%;
+  -webkit-mask: radial-gradient(
+    calc(var(--t) * 100%) 105% at 0 0,
+    #0000 99%,
+    #000 101%
+  );
+  mask: radial-gradient(
+    calc(var(--t) * 100%) 105% at 0 0,
+    #0000 99%,
+    #000 101%
+  );
 }
