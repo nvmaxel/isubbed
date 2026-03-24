@@ -22,14 +22,20 @@ export default function QuestionView({ onYes, onNo }: QuestionViewProps) {
       </h1>
 
       <div className="flex items-center gap-16 md:gap-24">
+        <DodgeButton
+          label="yes"
+          maxDodges={2}
+          messages={["you sure about that?", "ok ok, go ahead"]}
+          eyeImages={["/assets/1.png", "/assets/1.png"]}
+          onCaught={onYes}
+        />
+
         <button
-          onClick={onYes}
+          onClick={onNo}
           className="text-5xl md:text-7xl lg:text-8xl font-bold text-white hover:scale-110 transition-transform duration-200 cursor-pointer"
         >
-          yes
+          no
         </button>
-
-        <DodgeButton onCaught={onNo} />
       </div>
     </motion.div>
   );
