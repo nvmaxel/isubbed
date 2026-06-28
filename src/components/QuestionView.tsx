@@ -17,15 +17,19 @@ export default function QuestionView({ onYes, onNo }: QuestionViewProps) {
       exit={{ opacity: 0, scale: 1.05 }}
       transition={{ duration: 0.4, ease: "easeInOut" }}
     >
-      <h1 className="text-lg md:text-2xl font-medium text-white/80 tracking-wide">
+      <h1 className="text-lg md:text-2xl font-medium text-white tracking-wide">
         Did you subscribe to Axel?
       </h1>
 
       <div className="flex items-center gap-16 md:gap-24">
         <DodgeButton
           label="yes"
-          maxDodges={2}
-          messages={["you sure about that?", "ok ok, go ahead"]}
+          maxDodges={3}
+          messages={[
+            "you sure about that?",
+            "you're not just saying that are you?",
+            "alright fine i'll believe you",
+          ]}
           eyeImages={["/assets/1.png", "/assets/1.png"]}
           onCaught={onYes}
         />

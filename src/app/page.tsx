@@ -7,7 +7,7 @@ import QuestionView from "@/components/QuestionView";
 import WelcomeView from "@/components/WelcomeView";
 import HonestView from "@/components/HonestView";
 
-type AppState = "question" | "welcome" | "honest";
+type AppState = "question" | "yes" | "no";
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("question");
@@ -37,12 +37,12 @@ export default function Home() {
           {appState === "question" && (
             <QuestionView
               key="question"
-              onYes={() => navigate("welcome")}
-              onNo={() => navigate("honest")}
+              onYes={() => navigate("yes")}
+              onNo={() => navigate("no")}
             />
           )}
-          {appState === "welcome" && <WelcomeView key="welcome" />}
-          {appState === "honest" && <HonestView key="honest" />}
+          {appState === "yes" && <WelcomeView key="yes" />}
+          {appState === "no" && <HonestView key="no" />}
         </AnimatePresence>
       </Room>
     </div>

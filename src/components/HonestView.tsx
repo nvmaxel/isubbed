@@ -4,18 +4,16 @@ import { motion } from "framer-motion";
 
 const channels = [
   {
-    handle: "@axelnvm",
-    description:
-      "My main channel where the videos are a bit more tryhard.",
-    url: "https://youtube.com/@axelnvm",
-    avatar: "/assets/main-channel.png",
-  },
-  {
     handle: "@nvmaxel",
-    description:
-      "My second channel where I post playthroughs, irl content and stuff.",
+    description: "I post more here",
     url: "https://youtube.com/@nvmaxel",
     avatar: "/assets/seccond-channel.png",
+  },
+  {
+    handle: "@axelnvm",
+    description: "I post less here",
+    url: "https://youtube.com/@axelnvm",
+    avatar: "/assets/main-channel.png",
   },
 ];
 
@@ -28,15 +26,14 @@ export default function HonestView() {
       exit={{ opacity: 0, scale: 1.05 }}
       transition={{ duration: 0.4, ease: "easeInOut" }}
     >
-      <div className="text-center space-y-4">
+      <div className="text-center space-y-4 w-[calc(100vw-2rem)] max-w-2xl">
         <p className="text-base md:text-lg font-semibold italic text-white/90 leading-relaxed">
-          Ah alright don&apos;t worry about it, At least you&apos;re being
-          honest and that&apos;s cool. I think the world would be a better place
-          if more people were honest.
+          Don&apos;t worry about it, at least you&apos;re being honest and
+          that&apos;s cool. I think the world would be a better place if more
+          people were honest.
         </p>
         <p className="text-base md:text-lg font-semibold italic text-white/90 leading-relaxed">
-          Anyway, here are my channels if you change your mind and want to
-          subscribe:
+          Here are my channels if you change your mind and want to subscribe:
         </p>
       </div>
 

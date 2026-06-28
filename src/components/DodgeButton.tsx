@@ -165,7 +165,7 @@ export default function DodgeButton({
             exit={{ opacity: 0, scale: 0.8, y: -5 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
           >
-            <div className="speech-bubble text-black text-xs md:text-sm font-bold uppercase text-center">
+            <div className="speech-bubble text-black text-xs md:text-sm font-bold text-center">
               {messages[stage - 1]}
             </div>
           </motion.div>

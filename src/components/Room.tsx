@@ -108,12 +108,12 @@ export default function Room({ children }: RoomProps) {
           pointerEvents: "none",
           overflow: "hidden",
           transformStyle: "preserve-3d",
-          transform: `rotateY(${tilt.x}deg) rotateX(${tilt.y}deg) translateZ(-60px) scale(1.05)`,
+          transform: `rotateY(${tilt.x}deg) rotateX(${tilt.y}deg) translateZ(-60px) scale(1.15)`,
           transition: "transform 0.2s ease-out",
         }}
       >
         <img
-          src="/assets/room.avif"
+          src="/assets/isubbed-bg.png"
           alt=""
           className="room-bg-img"
         />
