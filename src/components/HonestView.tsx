@@ -26,14 +26,10 @@ export default function HonestView() {
       exit={{ opacity: 0, scale: 1.05 }}
       transition={{ duration: 0.4, ease: "easeInOut" }}
     >
-      <div className="text-center space-y-4 w-[calc(100vw-2rem)] max-w-2xl">
-        <p className="text-base md:text-lg font-semibold italic text-white/90 leading-relaxed">
-          Don&apos;t worry about it, at least you&apos;re being honest and
-          that&apos;s cool. I think the world would be a better place if more
-          people were honest.
-        </p>
-        <p className="text-base md:text-lg font-semibold italic text-white/90 leading-relaxed">
-          Here are my channels if you change your mind and want to subscribe:
+      <div className="flex justify-center w-full text-center">
+        <p className="max-w-[390px] text-base md:text-lg font-semibold italic text-white/90 leading-relaxed">
+          Don&apos;t worry about it, here are my channels if you change your
+          mind and want to subscribe:
         </p>
       </div>
 

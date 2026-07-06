@@ -77,36 +77,36 @@ body {
   display: block;
 }
 
-/* Cartoon speech bubble — curved tail via CSS mask */
+/* Cartoon speech bubble */
 .speech-bubble {
-  --b: 1.4em;
-  --h: 1em;
+  --b: 1.25em;
+  --h: 0.9em;
   --t: 0.35;
   --p: 25%;
   --r: 1.6em;
+  --tail-left: clamp(
+    -1 * var(--t) * var(--b),
+    var(--p) - (var(--t) + 1) * var(--b) / 2,
+    100% - var(--b)
+  );
 
   padding: 0.6em 1.2em;
-  border-radius: var(--r) var(--r)
-    min(var(--r), 100% - var(--p) - (1 - var(--t)) * var(--b) / 2)
-    min(var(--r), var(--p) - (1 - var(--t)) * var(--b) / 2) / var(--r);
+  border-radius: var(--r);
   background: #fff;
   position: relative;
-  border: 2px solid #222;
+  border: 1.5px solid #222;
   display: inline-block;
+  overflow: visible;
 }
 
 .speech-bubble::before {
   content: "";
   position: absolute;
-  top: 100%;
-  left: clamp(
-    -1 * var(--t) * var(--b),
-    var(--p) - (var(--t) + 1) * var(--b) / 2,
-    100% - var(--b)
-  );
+  top: calc(100% - 1px);
+  left: var(--tail-left);
   width: var(--b);
   height: var(--h);
-  background: inherit;
+  background: #222;
   border-bottom-right-radius: 100%;
   -webkit-mask: radial-gradient(
     calc(var(--t) * 100%) 105% at 0 0,
@@ -118,4 +118,27 @@ body {
     #0000 99%,
     #000 101%
   );
+  pointer-events: none;
+}
+
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  top: calc(100% - 2px);
+  left: calc(var(--tail-left) + 1px);
+  width: calc(var(--b) - 2px);
+  height: calc(var(--h) - 2px);
+  background: #fff;
+  border-bottom-right-radius: 100%;
+  -webkit-mask: radial-gradient(
+    calc(var(--t) * 100%) 105% at 0 0,
+    #0000 99%,
+    #000 101%
+  );
+  mask: radial-gradient(
+    calc(var(--t) * 100%) 105% at 0 0,
+    #0000 99%,
+    #000 101%
+  );
+  pointer-events: none;
 }
