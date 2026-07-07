@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useLayoutEffect, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface DodgeButtonProps {
@@ -10,6 +10,53 @@ interface DodgeButtonProps {
   eyeImages: string[];
   onCaught: () => void;
 }
+
+const estimateSpeechBubbleWidth = (message: string, isMobile: boolean) => {
+  const approximateCharacterWidth = isMobile ? 7 : 8;
+  const approximateHorizontalPadding = isMobile ? 32 : 38;
+
+  return (
+    message.length * approximateCharacterWidth + approximateHorizontalPadding
+  );
+};
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, value));
+
+const getVisualGroupBounds = (
+  buttonRect: DOMRect,
+  bubbleElement: HTMLDivElement | null,
+  message: string,
+  isMobile: boolean
+) => {
+  const estimatedBubbleWidth = estimateSpeechBubbleWidth(message, isMobile);
+  const estimatedBubbleHeight = isMobile ? 34 : 38;
+  const bubbleLeft = buttonRect.width * 0.6;
+  const bubbleTop = -32;
+  const bounds = {
+    left: 0,
+    top: 0,
+    right: buttonRect.width,
+    bottom: buttonRect.height,
+  };
+
+  if (bubbleElement) {
+    const bubbleRect = bubbleElement.getBoundingClientRect();
+    bounds.left = Math.min(bounds.left, bubbleRect.left - buttonRect.left);
+    bounds.top = Math.min(bounds.top, bubbleRect.top - buttonRect.top);
+    bounds.right = Math.max(bounds.right, bubbleRect.right - buttonRect.left);
+    bounds.bottom = Math.max(
+      bounds.bottom,
+      bubbleRect.bottom - buttonRect.top
+    );
+  }
+
+  bounds.top = Math.min(bounds.top, bubbleTop);
+  bounds.right = Math.max(bounds.right, bubbleLeft + estimatedBubbleWidth);
+  bounds.bottom = Math.max(bounds.bottom, bubbleTop + estimatedBubbleHeight);
+
+  return bounds;
+};
 
 export default function DodgeButton({
   label,
@@ -22,7 +69,6 @@ export default function DodgeButton({
   const [stage, setStage] = useState(0);
   const [caught, setCaught] = useState(false);
   const [bubbleKey, setBubbleKey] = useState(0);
-  const [bubbleShift, setBubbleShift] = useState(0);
 
   const buttonRef = useRef<HTMLDivElement>(null);
   const bubbleRef = useRef<HTMLDivElement>(null);
@@ -31,43 +77,6 @@ export default function DodgeButton({
   const isCaught = useRef(false);
   const lastDodgeTime = useRef(0);
   const caughtAtTime = useRef(0);
-
-  const clampSpeechBubble = useCallback(() => {
-    if (stage <= 0 || !buttonRef.current || !bubbleRef.current) return;
-
-    const viewportMargin = 12;
-    const buttonRect = buttonRef.current.getBoundingClientRect();
-    const bubbleWidth = bubbleRef.current.offsetWidth;
-    const baseLeft = buttonRect.left + buttonRect.width * 0.6;
-    const baseRight = baseLeft + bubbleWidth;
-    const maxRight = window.innerWidth - viewportMargin;
-
-    let nextShift = 0;
-
-    if (baseLeft < viewportMargin) {
-      nextShift = viewportMargin - baseLeft;
-    } else if (baseRight > maxRight) {
-      nextShift = maxRight - baseRight;
-    }
-
-    setBubbleShift((currentShift) =>
-      Math.abs(currentShift - nextShift) < 0.5 ? currentShift : nextShift
-    );
-  }, [stage]);
-
-  useLayoutEffect(() => {
-    if (stage <= 0) return;
-
-    const frameId = window.requestAnimationFrame(clampSpeechBubble);
-    const settleTimerId = window.setTimeout(clampSpeechBubble, 300);
-    window.addEventListener("resize", clampSpeechBubble);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-      window.clearTimeout(settleTimerId);
-      window.removeEventListener("resize", clampSpeechBubble);
-    };
-  }, [stage, bubbleKey, offset.x, offset.y, clampSpeechBubble]);
 
   const dodge = useCallback(() => {
     if (isCaught.current || !buttonRef.current) return;
@@ -103,6 +112,13 @@ export default function DodgeButton({
     const homeTop = rect.top - cur.y;
     const btnW = rect.width;
     const btnH = rect.height;
+    const groupBounds = getVisualGroupBounds(
+      rect,
+      bubbleRef.current,
+      messages[count - 1] ?? "",
+      isMobileViewport
+    );
+    const viewportMargin = isMobileViewport ? 12 : 16;
 
     const safeLeft = isMobileViewport ? 24 : 60;
     const safeRight = Math.max(
@@ -128,6 +144,35 @@ export default function DodgeButton({
     const forbiddenRight = vw * 0.8;
     const forbiddenTop = vh * 0.2;
     const forbiddenBottom = vh * 0.8;
+    const groupMinX = viewportMargin - groupBounds.left - homeLeft;
+    const groupMaxX = vw - viewportMargin - groupBounds.right - homeLeft;
+    const groupMinY = viewportMargin - groupBounds.top - homeTop;
+    const groupMaxY = vh - viewportMargin - groupBounds.bottom - homeTop;
+
+    const groupOverflow = (x: number, y: number) => {
+      const left = homeLeft + x + groupBounds.left;
+      const right = homeLeft + x + groupBounds.right;
+      const top = homeTop + y + groupBounds.top;
+      const bottom = homeTop + y + groupBounds.bottom;
+
+      return (
+        Math.max(0, viewportMargin - left) +
+        Math.max(0, right - (vw - viewportMargin)) +
+        Math.max(0, viewportMargin - top) +
+        Math.max(0, bottom - (vh - viewportMargin))
+      );
+    };
+
+    const clampToGroupBounds = (x: number, y: number) => ({
+      x:
+        groupMinX <= groupMaxX
+          ? clamp(x, groupMinX, groupMaxX)
+          : (groupMinX + groupMaxX) / 2,
+      y:
+        groupMinY <= groupMaxY
+          ? clamp(y, groupMinY, groupMaxY)
+          : (groupMinY + groupMaxY) / 2,
+    });
 
     let newX: number;
     let newY: number;
@@ -162,8 +207,8 @@ export default function DodgeButton({
       const maxX = safeRight - homeLeft;
       const minY = safeTop - homeTop;
       const maxY = safeBottom - homeTop;
-      newX = Math.max(minX, Math.min(maxX, newX));
-      newY = Math.max(minY, Math.min(maxY, newY));
+      newX = clamp(newX, minX, maxX);
+      newY = clamp(newY, minY, maxY);
 
       const landX = homeLeft + newX;
       const landY = homeTop + newY;
@@ -174,9 +219,16 @@ export default function DodgeButton({
         landY < forbiddenBottom;
       const travelDistance = Math.hypot(newX - cur.x, newY - cur.y);
       const homeDistance = Math.hypot(newX, newY);
+      const overflow = groupOverflow(newX, newY);
+      const groupFits = overflow === 0;
+      const hasMeaningfulDistance =
+        travelDistance >= minTravelDistance && homeDistance >= minHomeDistance;
       const score =
+        (groupFits ? 10000 : 0) +
+        (hasMeaningfulDistance ? 5000 : 0) +
         travelDistance +
         homeDistance -
+        overflow * 20 -
         (inForbidden ? minTravelDistance + minHomeDistance : 0);
 
       if (score > bestScore) {
@@ -187,22 +239,26 @@ export default function DodgeButton({
 
       attempts++;
       if (
+        groupFits &&
         !inForbidden &&
-        travelDistance >= minTravelDistance &&
-        homeDistance >= minHomeDistance
+        hasMeaningfulDistance
       ) {
         break;
       }
-    } while (attempts < 30);
+    } while (attempts < 80);
 
-    if (attempts >= 30) {
+    if (attempts >= 80) {
       newX = bestX;
       newY = bestY;
     }
 
+    const clampedGroupOffset = clampToGroupBounds(newX, newY);
+    newX = clampedGroupOffset.x;
+    newY = clampedGroupOffset.y;
+
     currentOffset.current = { x: newX, y: newY };
     setOffset({ x: newX, y: newY });
-  }, [maxDodges]);
+  }, [maxDodges, messages]);
 
   const handleMouseEnter = useCallback(() => {
     if (!isCaught.current) dodge();
@@ -238,7 +294,6 @@ export default function DodgeButton({
       onMouseEnter={handleMouseEnter}
       onTouchStart={handleTouchStart}
       onClick={handleClick}
-      onUpdate={clampSpeechBubble}
     >
       {/* Speech bubble */}
       <AnimatePresence mode="wait">
@@ -251,10 +306,7 @@ export default function DodgeButton({
             exit={{ opacity: 0, scale: 0.8, y: -5 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
           >
-            <div
-              ref={bubbleRef}
-              style={{ transform: `translateX(${bubbleShift}px)` }}
-            >
+            <div ref={bubbleRef}>
               <div className="speech-bubble text-black text-xs md:text-sm font-bold text-center">
                 {messages[stage - 1]}
               </div>
