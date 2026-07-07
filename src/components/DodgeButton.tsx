@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useLayoutEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface DodgeButtonProps {
@@ -22,12 +22,51 @@ export default function DodgeButton({
   const [stage, setStage] = useState(0);
   const [caught, setCaught] = useState(false);
   const [bubbleKey, setBubbleKey] = useState(0);
+  const [bubbleShift, setBubbleShift] = useState(0);
 
   const buttonRef = useRef<HTMLDivElement>(null);
+  const bubbleRef = useRef<HTMLDivElement>(null);
   const dodgeCount = useRef(0);
   const currentOffset = useRef({ x: 0, y: 0 });
   const isCaught = useRef(false);
   const lastDodgeTime = useRef(0);
+
+  const clampSpeechBubble = useCallback(() => {
+    if (stage <= 0 || !buttonRef.current || !bubbleRef.current) return;
+
+    const viewportMargin = 12;
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const bubbleWidth = bubbleRef.current.offsetWidth;
+    const baseLeft = buttonRect.left + buttonRect.width * 0.6;
+    const baseRight = baseLeft + bubbleWidth;
+    const maxRight = window.innerWidth - viewportMargin;
+
+    let nextShift = 0;
+
+    if (baseLeft < viewportMargin) {
+      nextShift = viewportMargin - baseLeft;
+    } else if (baseRight > maxRight) {
+      nextShift = maxRight - baseRight;
+    }
+
+    setBubbleShift((currentShift) =>
+      Math.abs(currentShift - nextShift) < 0.5 ? currentShift : nextShift
+    );
+  }, [stage]);
+
+  useLayoutEffect(() => {
+    if (stage <= 0) return;
+
+    const frameId = window.requestAnimationFrame(clampSpeechBubble);
+    const settleTimerId = window.setTimeout(clampSpeechBubble, 300);
+    window.addEventListener("resize", clampSpeechBubble);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(settleTimerId);
+      window.removeEventListener("resize", clampSpeechBubble);
+    };
+  }, [stage, bubbleKey, offset.x, offset.y, clampSpeechBubble]);
 
   const dodge = useCallback(() => {
     if (isCaught.current || !buttonRef.current) return;
@@ -146,13 +185,14 @@ export default function DodgeButton({
       animate={{ x: offset.x, y: offset.y }}
       transition={{
         type: "spring",
-        stiffness: caught ? 300 : Math.max(200, 500 - dodgeCount.current * 60),
-        damping: caught ? 25 : 15 + dodgeCount.current * 2,
-        mass: 1 + dodgeCount.current * 0.15,
+        stiffness: caught ? 300 : Math.max(200, 500 - stage * 60),
+        damping: caught ? 25 : 15 + stage * 2,
+        mass: 1 + stage * 0.15,
       }}
       onMouseEnter={handleMouseEnter}
       onTouchStart={handleTouchStart}
       onClick={handleClick}
+      onUpdate={clampSpeechBubble}
     >
       {/* Speech bubble */}
       <AnimatePresence mode="wait">
@@ -165,8 +205,13 @@ export default function DodgeButton({
             exit={{ opacity: 0, scale: 0.8, y: -5 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
           >
-            <div className="speech-bubble text-black text-xs md:text-sm font-bold text-center">
-              {messages[stage - 1]}
+            <div
+              ref={bubbleRef}
+              style={{ transform: `translateX(${bubbleShift}px)` }}
+            >
+              <div className="speech-bubble text-black text-xs md:text-sm font-bold text-center">
+                {messages[stage - 1]}
+              </div>
             </div>
           </motion.div>
         )}
