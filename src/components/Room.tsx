@@ -100,12 +100,12 @@ export default function Room({ children }: RoomProps) {
       <div
         style={{
           position: "absolute",
-          inset: isMobile ? "-25%" : "-10%",
+          inset: isMobile ? "-40%" : "-10%",
           pointerEvents: "none",
           overflow: "hidden",
           transformStyle: isMobile ? "flat" : "preserve-3d",
           transform: isMobile
-            ? "translateZ(0) scale(1.15)"
+            ? "translateZ(0) scale(1.4)"
             : `rotateY(${activeTilt.x}deg) rotateX(${activeTilt.y}deg) translateZ(-60px) scale(1.15)`,
           transition: "transform 0.2s ease-out",
         }}

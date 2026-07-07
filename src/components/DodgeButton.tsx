@@ -30,6 +30,7 @@ export default function DodgeButton({
   const currentOffset = useRef({ x: 0, y: 0 });
   const isCaught = useRef(false);
   const lastDodgeTime = useRef(0);
+  const caughtAtTime = useRef(0);
 
   const clampSpeechBubble = useCallback(() => {
     if (stage <= 0 || !buttonRef.current || !bubbleRef.current) return;
@@ -83,6 +84,7 @@ export default function DodgeButton({
 
     if (count >= maxDodges) {
       isCaught.current = true;
+      caughtAtTime.current = now;
       currentOffset.current = { x: 0, y: 0 };
       setOffset({ x: 0, y: 0 });
       setCaught(true);
@@ -92,6 +94,9 @@ export default function DodgeButton({
     const rect = buttonRef.current.getBoundingClientRect();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    const isMobileViewport = window.matchMedia(
+      "(max-width: 768px), (pointer: coarse)"
+    ).matches;
     const cur = currentOffset.current;
 
     const homeLeft = rect.left - cur.x;
@@ -99,10 +104,25 @@ export default function DodgeButton({
     const btnW = rect.width;
     const btnH = rect.height;
 
-    const safeLeft = 60;
-    const safeRight = vw - btnW - 180;
-    const safeTop = 160;
-    const safeBottom = vh - btnH - 60;
+    const safeLeft = isMobileViewport ? 24 : 60;
+    const safeRight = Math.max(
+      safeLeft,
+      vw - btnW - (isMobileViewport ? 24 : 180)
+    );
+    const safeTop = isMobileViewport ? 120 : 160;
+    const safeBottom = Math.max(
+      safeTop,
+      vh - btnH - (isMobileViewport ? 80 : 60)
+    );
+    const minViewportSize = Math.min(vw, vh);
+    const minTravelDistance = Math.min(
+      isMobileViewport ? 180 : 140,
+      Math.max(isMobileViewport ? 150 : 120, minViewportSize * 0.45)
+    );
+    const minHomeDistance = Math.min(
+      isMobileViewport ? 160 : 120,
+      Math.max(isMobileViewport ? 150 : 100, minViewportSize * 0.4)
+    );
 
     const forbiddenLeft = vw * 0.2;
     const forbiddenRight = vw * 0.8;
@@ -111,6 +131,9 @@ export default function DodgeButton({
 
     let newX: number;
     let newY: number;
+    let bestX = cur.x;
+    let bestY = cur.y;
+    let bestScore = -Infinity;
     let attempts = 0;
 
     do {
@@ -135,6 +158,13 @@ export default function DodgeButton({
       newX = targetX - homeLeft;
       newY = targetY - homeTop;
 
+      const minX = safeLeft - homeLeft;
+      const maxX = safeRight - homeLeft;
+      const minY = safeTop - homeTop;
+      const maxY = safeBottom - homeTop;
+      newX = Math.max(minX, Math.min(maxX, newX));
+      newY = Math.max(minY, Math.min(maxY, newY));
+
       const landX = homeLeft + newX;
       const landY = homeTop + newY;
       const inForbidden =
@@ -142,19 +172,33 @@ export default function DodgeButton({
         landX < forbiddenRight &&
         landY + btnH > forbiddenTop &&
         landY < forbiddenBottom;
+      const travelDistance = Math.hypot(newX - cur.x, newY - cur.y);
+      const homeDistance = Math.hypot(newX, newY);
+      const score =
+        travelDistance +
+        homeDistance -
+        (inForbidden ? minTravelDistance + minHomeDistance : 0);
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestX = newX;
+        bestY = newY;
+      }
 
       attempts++;
-      if (!inForbidden && Math.abs(newX - cur.x) + Math.abs(newY - cur.y) > 80) {
+      if (
+        !inForbidden &&
+        travelDistance >= minTravelDistance &&
+        homeDistance >= minHomeDistance
+      ) {
         break;
       }
     } while (attempts < 30);
 
-    const minX = safeLeft - homeLeft;
-    const maxX = safeRight - homeLeft;
-    const minY = safeTop - homeTop;
-    const maxY = safeBottom - homeTop;
-    newX = Math.max(minX, Math.min(maxX, newX));
-    newY = Math.max(minY, Math.min(maxY, newY));
+    if (attempts >= 30) {
+      newX = bestX;
+      newY = bestY;
+    }
 
     currentOffset.current = { x: newX, y: newY };
     setOffset({ x: newX, y: newY });
@@ -175,7 +219,9 @@ export default function DodgeButton({
   );
 
   const handleClick = useCallback(() => {
-    if (isCaught.current) onCaught();
+    if (!isCaught.current) return;
+    if (Date.now() - caughtAtTime.current < 350) return;
+    onCaught();
   }, [onCaught]);
 
   return (
