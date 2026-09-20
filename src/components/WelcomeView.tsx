@@ -1,10 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { useRoomParallax } from "./Room";
 
 export default function WelcomeView() {
   // Replace with your unlisted video ID
   const videoId = "dfOrX4_eZ50";
+  const setParallaxPaused = useRoomParallax();
+
+  useEffect(
+    () => () => {
+      setParallaxPaused(false);
+    },
+    [setParallaxPaused]
+  );
 
   return (
     <motion.div
@@ -18,9 +28,13 @@ export default function WelcomeView() {
         WELCOME
       </h1>
 
-      <div className="w-full aspect-video bg-white rounded-sm overflow-hidden shadow-2xl">
+      <div
+        className="w-full aspect-video rounded-sm overflow-hidden shadow-2xl"
+        onMouseEnter={() => setParallaxPaused(true)}
+        onMouseLeave={() => setParallaxPaused(false)}
+      >
         <iframe
-          className="w-full h-full"
+          className="block w-full h-full m-0 p-0 border-0"
           src={`https://www.youtube.com/embed/${videoId}`}
           title="Welcome video"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

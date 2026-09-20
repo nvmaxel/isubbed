@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  createContext,
   ReactNode,
+  useContext,
   useRef,
   useCallback,
   useState,
@@ -13,7 +15,11 @@ interface RoomProps {
   children: ReactNode;
 }
 
-const mobileQuery = "(max-width: 768px), (pointer: coarse)";
+const RoomParallaxContext = createContext<(paused: boolean) => void>(() => {});
+
+export const useRoomParallax = () => useContext(RoomParallaxContext);
+
+const mobileQuery = "(max-width: 1023px)";
 
 const getMobileSnapshot = () =>
   typeof window !== "undefined" && window.matchMedia(mobileQuery).matches;
@@ -49,6 +55,7 @@ const subscribeToMobileChanges = (onStoreChange: () => void) => {
 export default function Room({ children }: RoomProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [isParallaxPaused, setIsParallaxPaused] = useState(false);
   const isMobile = useSyncExternalStore(
     subscribeToMobileChanges,
     getMobileSnapshot,
@@ -59,7 +66,7 @@ export default function Room({ children }: RoomProps) {
   // Desktop: mouse-based parallax
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (isMobile) return;
+      if (isMobile || isParallaxPaused) return;
 
       const el = containerRef.current;
       if (!el) return;
@@ -68,13 +75,21 @@ export default function Room({ children }: RoomProps) {
       const my = (e.clientY - rect.top) / rect.height - 0.5;
       setTilt({ x: mx * 20, y: -my * 20 });
     },
-    [isMobile]
+    [isMobile, isParallaxPaused]
   );
 
-  const handleMouseLeave = useCallback(() => {
+  const resetTilt = useCallback(() => {
     if (isMobile) return;
     setTilt({ x: 0, y: 0 });
   }, [isMobile]);
+
+  const handleParallaxPauseChange = useCallback(
+    (paused: boolean) => {
+      setIsParallaxPaused(paused);
+      if (paused) resetTilt();
+    },
+    [resetTilt]
+  );
 
   useEffect(() => {
     const el = containerRef.current;
@@ -82,40 +97,41 @@ export default function Room({ children }: RoomProps) {
 
     // Mouse events for desktop
     el.addEventListener("mousemove", handleMouseMove);
-    el.addEventListener("mouseleave", handleMouseLeave);
+    el.addEventListener("mouseleave", resetTilt);
 
     return () => {
       el.removeEventListener("mousemove", handleMouseMove);
-      el.removeEventListener("mouseleave", handleMouseLeave);
+      el.removeEventListener("mouseleave", resetTilt);
     };
-  }, [isMobile, handleMouseMove, handleMouseLeave]);
+  }, [isMobile, handleMouseMove, resetTilt]);
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full overflow-hidden"
+      className="room-container relative w-full h-full overflow-hidden"
       style={{ perspective: isMobile ? "none" : "1200px" }}
     >
       {/* Room background image — tilts with 3D rotation */}
-      <div
-        style={{
-          position: "absolute",
-          inset: isMobile ? "-40%" : "-10%",
-          pointerEvents: "none",
-          overflow: "hidden",
-          transformStyle: isMobile ? "flat" : "preserve-3d",
-          transform: isMobile
-            ? "translateZ(0) scale(1.4)"
-            : `rotateY(${activeTilt.x}deg) rotateX(${activeTilt.y}deg) translateZ(-60px) scale(1.15)`,
-          transition: "transform 0.2s ease-out",
-        }}
-      >
-        <img
-          src="/assets/isubbed-bg.png"
-          alt=""
-          className="room-bg-img"
-        />
-      </div>
+      {!isMobile && (
+        <div
+          className="room-background"
+          style={{
+            position: "absolute",
+            inset: "-10%",
+            pointerEvents: "none",
+            overflow: "hidden",
+            transformStyle: "preserve-3d",
+            transform: `rotateY(${activeTilt.x}deg) rotateX(${activeTilt.y}deg) translateZ(-60px) scale(1.15)`,
+            transition: "transform 0.2s ease-out",
+          }}
+        >
+          <img
+            src="/assets/isubbed-bg.png"
+            alt=""
+            className="room-bg-img"
+          />
+        </div>
+      )}
 
       {/* Content — flat translate for parallax without breaking clicks */}
       <div
@@ -125,7 +141,9 @@ export default function Room({ children }: RoomProps) {
           transition: "transform 0.2s ease-out",
         }}
       >
-        {children}
+        <RoomParallaxContext.Provider value={handleParallaxPauseChange}>
+          {children}
+        </RoomParallaxContext.Provider>
       </div>
     </div>
   );
