@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geist.variable} h-full`}>
-      <body className="h-full overflow-hidden bg-[#B1241E] lg:bg-[#1a0a0a] text-white font-sans select-none">
+      <body className="h-full overflow-hidden bg-[#FF0000] lg:bg-[#1a0a0a] text-white font-sans select-none">
         {children}
       </body>
     </html>
