@@ -113,26 +113,24 @@ export default function Room({ children }: RoomProps) {
       style={{ perspective: isRoomEnabled ? "1200px" : "none" }}
     >
       {/* Room background image — tilts with 3D rotation */}
-      {isRoomEnabled && (
-        <div
-          className="room-background"
-          style={{
-            position: "absolute",
-            inset: "-10%",
-            pointerEvents: "none",
-            overflow: "hidden",
-            transformStyle: "preserve-3d",
-            transform: `rotateY(${activeTilt.x}deg) rotateX(${activeTilt.y}deg) translateZ(-60px) scale(1.15)`,
-            transition: "transform 0.2s ease-out",
-          }}
-        >
-          <img
-            src="/assets/isubbed-bg.png"
-            alt=""
-            className="room-bg-img"
-          />
-        </div>
-      )}
+      <div
+        className="room-background"
+        style={{
+          position: "absolute",
+          inset: "-10%",
+          pointerEvents: "none",
+          overflow: "hidden",
+          transformStyle: "preserve-3d",
+          transform: `rotateY(${activeTilt.x}deg) rotateX(${activeTilt.y}deg) translateZ(-60px) scale(1.15)`,
+          transition: "transform 0.2s ease-out",
+        }}
+      >
+        <img
+          src="/assets/isubbed-bg.png"
+          alt=""
+          className="room-bg-img"
+        />
+      </div>
 
       {/* Content — flat translate for parallax without breaking clicks */}
       <div

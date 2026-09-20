@@ -50,10 +50,6 @@ body {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .room-container {
-    background: #1a0a0a;
-  }
-
   .room-background {
     display: block;
   }
