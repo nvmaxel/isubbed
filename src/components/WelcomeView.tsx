@@ -8,7 +8,7 @@ export default function WelcomeView() {
 
   return (
     <motion.div
-      className="flex flex-col items-center gap-6 md:gap-10 w-full max-w-2xl px-4"
+      className="relative -top-10 flex flex-col items-center gap-6 md:gap-10 w-full max-w-2xl px-4"
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 1.05 }}
