@@ -9,7 +9,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: #1a0a0a;
+  background: #c4000f;
   color: #ffffff;
 }
 
@@ -35,7 +35,11 @@ body {
 
 /* Room background image */
 .room-container {
-  background: #1a0a0a;
+  background: #c4000f;
+}
+
+.room-background {
+  display: none;
 }
 
 .room-bg-img {
@@ -45,12 +49,12 @@ body {
   display: block;
 }
 
-@media (max-width: 1023px) {
+@media (hover: hover) and (pointer: fine) {
   .room-container {
-    background: #ff0000;
+    background: #1a0a0a;
   }
 
   .room-background {
-    display: none;
+    display: block;
   }
 }

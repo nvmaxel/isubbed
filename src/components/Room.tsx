@@ -19,22 +19,23 @@ const RoomParallaxContext = createContext<(paused: boolean) => void>(() => {});
 
 export const useRoomParallax = () => useContext(RoomParallaxContext);
 
-const mobileQuery = "(max-width: 1023px)";
+const roomCapabilityQuery = "(hover: hover) and (pointer: fine)";
 
-const getMobileSnapshot = () =>
-  typeof window !== "undefined" && window.matchMedia(mobileQuery).matches;
+const getRoomCapabilitySnapshot = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia(roomCapabilityQuery).matches;
 
-const getServerMobileSnapshot = () => false;
+const getServerRoomCapabilitySnapshot = () => false;
 
 type LegacyMediaQueryList = MediaQueryList & {
   addListener: (listener: () => void) => void;
   removeListener: (listener: () => void) => void;
 };
 
-const subscribeToMobileChanges = (onStoreChange: () => void) => {
+const subscribeToRoomCapabilityChanges = (onStoreChange: () => void) => {
   if (typeof window === "undefined") return () => {};
 
-  const mediaQuery = window.matchMedia(mobileQuery);
+  const mediaQuery = window.matchMedia(roomCapabilityQuery);
   const legacyMediaQuery = mediaQuery as LegacyMediaQueryList;
 
   if (typeof mediaQuery.addEventListener === "function") {
@@ -56,17 +57,17 @@ export default function Room({ children }: RoomProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [isParallaxPaused, setIsParallaxPaused] = useState(false);
-  const isMobile = useSyncExternalStore(
-    subscribeToMobileChanges,
-    getMobileSnapshot,
-    getServerMobileSnapshot
+  const isRoomEnabled = useSyncExternalStore(
+    subscribeToRoomCapabilityChanges,
+    getRoomCapabilitySnapshot,
+    getServerRoomCapabilitySnapshot
   );
-  const activeTilt = isMobile ? { x: 0, y: 0 } : tilt;
+  const activeTilt = isRoomEnabled ? tilt : { x: 0, y: 0 };
 
   // Desktop: mouse-based parallax
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (isMobile || isParallaxPaused) return;
+      if (!isRoomEnabled || isParallaxPaused) return;
 
       const el = containerRef.current;
       if (!el) return;
@@ -75,13 +76,13 @@ export default function Room({ children }: RoomProps) {
       const my = (e.clientY - rect.top) / rect.height - 0.5;
       setTilt({ x: mx * 20, y: -my * 20 });
     },
-    [isMobile, isParallaxPaused]
+    [isRoomEnabled, isParallaxPaused]
   );
 
   const resetTilt = useCallback(() => {
-    if (isMobile) return;
+    if (!isRoomEnabled) return;
     setTilt({ x: 0, y: 0 });
-  }, [isMobile]);
+  }, [isRoomEnabled]);
 
   const handleParallaxPauseChange = useCallback(
     (paused: boolean) => {
@@ -93,7 +94,7 @@ export default function Room({ children }: RoomProps) {
 
   useEffect(() => {
     const el = containerRef.current;
-    if (!el || isMobile) return;
+    if (!el || !isRoomEnabled) return;
 
     // Mouse events for desktop
     el.addEventListener("mousemove", handleMouseMove);
@@ -103,16 +104,16 @@ export default function Room({ children }: RoomProps) {
       el.removeEventListener("mousemove", handleMouseMove);
       el.removeEventListener("mouseleave", resetTilt);
     };
-  }, [isMobile, handleMouseMove, resetTilt]);
+  }, [isRoomEnabled, handleMouseMove, resetTilt]);
 
   return (
     <div
       ref={containerRef}
       className="room-container relative w-full h-full overflow-hidden"
-      style={{ perspective: isMobile ? "none" : "1200px" }}
+      style={{ perspective: isRoomEnabled ? "1200px" : "none" }}
     >
       {/* Room background image — tilts with 3D rotation */}
-      {!isMobile && (
+      {isRoomEnabled && (
         <div
           className="room-background"
           style={{
