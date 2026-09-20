@@ -9,7 +9,10 @@ import {
   useState,
   useEffect,
   useSyncExternalStore,
+  Fragment,
 } from "react";
+import { AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 interface RoomProps {
   children: ReactNode;
@@ -55,6 +58,7 @@ const subscribeToRoomCapabilityChanges = (onStoreChange: () => void) => {
 
 export default function Room({ children }: RoomProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [isParallaxPaused, setIsParallaxPaused] = useState(false);
   const isRoomEnabled = useSyncExternalStore(
@@ -141,7 +145,9 @@ export default function Room({ children }: RoomProps) {
         }}
       >
         <RoomParallaxContext.Provider value={handleParallaxPauseChange}>
-          {children}
+          <AnimatePresence mode="wait">
+            <Fragment key={pathname}>{children}</Fragment>
+          </AnimatePresence>
         </RoomParallaxContext.Provider>
       </div>
     </div>

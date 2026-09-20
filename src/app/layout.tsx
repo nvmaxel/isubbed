@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import Room from "@/components/Room";
 import "./globals.css";
 
 const geist = Geist({
@@ -26,7 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable} h-full`}>
       <body className="h-full overflow-hidden bg-[#C4000F] text-white font-sans select-none">
-        {children}
+        <div className="h-screen w-screen overflow-hidden">
+          <Room>{children}</Room>
+        </div>
       </body>
     </html>
   );
