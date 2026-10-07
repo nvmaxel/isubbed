@@ -6,7 +6,7 @@ import { useRoomParallax } from "./Room";
 
 export default function WelcomeView() {
   // Replace with your unlisted video ID
-  const videoId = "dfOrX4_eZ50";
+  const videoId = "QBu1Eik0P3o";
   const setParallaxPaused = useRoomParallax();
 
   useEffect(
